@@ -28,9 +28,9 @@ results_list = []
 #TODO:: Mongo Connection string
 MONGO_URI = "mongodb://localhost:27017"
 DB_NAME = "longhornsteakhouse_US_feasiblity"
-COLLECTION_INPUT = "sitemaps_inputs_1"
+COLLECTION_INPUT = "sitemaps_inputs_2"
 
-def process_task(fetch_Product_URL):
+def process_task(fetch_Product_URL,category_name):
     split_fetch_Product_URL = fetch_Product_URL.split("/")[-1]
     url = f"https://www.longhornsteakhouse.com/api/menu/{split_fetch_Product_URL}?locale=en_US&restaurantNum=5155"
     response = requests.get(url=url,  headers=headers, impersonate="chrome120")
@@ -158,6 +158,7 @@ def process_task(fetch_Product_URL):
             item['URL'] = URL
             item['Category'] = Category.upper() if Category else ""
             item['SubCategory'] = SubCategory.upper() if SubCategory else ""
+            item['MenuCategory'] = category_name
             item['MenuItemName'] = MenuItemName
 
             # MenuItemID
@@ -223,7 +224,8 @@ def main():
         futures = []
         for task in pending_tasks:
             url = task.get("url", "")
-            future = executor.submit(process_task, url)
+            category_name = task.get("category_name", "")
+            future = executor.submit(process_task, url,category_name)
             futures.append(future)
 
         for future in as_completed(futures):
